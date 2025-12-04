@@ -2,6 +2,11 @@ class PenguinGame {
   constructor(canvasId) {
     this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext('2d');
+    
+    // Set canvas to fill entire screen
+    this.resizeCanvas();
+    window.addEventListener('resize', () => this.resizeCanvas());
+    
     this.width = this.canvas.width;
     this.height = this.canvas.height;
 
@@ -69,6 +74,13 @@ class PenguinGame {
 
     // Event listeners
     this.setupEventListeners();
+  }
+
+  resizeCanvas() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+    this.width = this.canvas.width;
+    this.height = this.canvas.height;
   }
 
   generateStars() {

@@ -42,7 +42,70 @@
       </div>
 
       <div class="game-container">
-        <canvas id="gameCanvas" width="1000" height="600"></canvas>
+        <canvas id="gameCanvas"></canvas>
+        <div class="legend">
+          <h3>Legend</h3>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #10b981;"></div>
+            <span>Jump Gap (A)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #ef4444;"></div>
+            <span>Bump Obstacle (B)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #f59e0b;"></div>
+            <span>Free Path (C)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="left-notices">
+        <div class="notice-box notice-1">
+          <span class="notice-icon">🔓</span>
+          <span class="notice-text">Free your software!</span>
+        </div>
+        <div class="notice-box notice-2">
+          <span class="notice-icon">💻</span>
+          <span class="notice-text">Linux is the way</span>
+        </div>
+        <div class="notice-box notice-3">
+          <span class="notice-icon">🚀</span>
+          <span class="notice-text">Go open source NOW!</span>
+        </div>
+        <div class="notice-box notice-4">
+          <span class="notice-icon">🧠</span>
+          <span class="notice-text">Think free, code free</span>
+        </div>
+        <div class="notice-box notice-5">
+          <span class="notice-icon">🐧</span>
+          <span class="notice-text">Join the penguin army</span>
+        </div>
+        <div class="notice-box notice-6">
+          <span class="notice-icon">⚡</span>
+          <span class="notice-text">Power of open source</span>
+        </div>
+      </div>
+
+      <div class="pushy-penguin penguin-1">
+        <div class="penguin-bubble">
+          <span id="penguinMessage1">Use open source! 🐧</span>
+        </div>
+        <div class="penguin-emoji">🐧</div>
+      </div>
+
+      <div class="pushy-penguin penguin-2">
+        <div class="penguin-bubble">
+          <span id="penguinMessage2">Free software rocks! 💪</span>
+        </div>
+        <div class="penguin-emoji">🐧</div>
+      </div>
+
+      <div class="pushy-penguin penguin-3">
+        <div class="penguin-bubble">
+          <span id="penguinMessage3">Go FOSS! 🚀</span>
+        </div>
+        <div class="penguin-emoji">🐧</div>
       </div>
 
       <div class="game-controls">
@@ -53,6 +116,15 @@
       </div>
 
       <div id="gameMessage" class="game-message"></div>
+
+      <div class="open-source-links">
+        <div class="os-links-title">OPEN SOURCE HERE<br><span class="arrow-down">↓</span></div>
+        <a href="https://www.linux.org" target="_blank" title="Linux Official">🐧 Linux</a>
+        <a href="https://github.com" target="_blank" title="GitHub">🐙 GitHub</a>
+        <a href="https://www.gnu.org" target="_blank" title="GNU Project">🔓 GNU</a>
+        <a href="https://opensource.org" target="_blank" title="Open Source Initiative">⭐ OSI</a>
+        <a href="https://www.fsf.org" target="_blank" title="Free Software Foundation">💪 FSF</a>
+      </div>
     </div>
 
     <!-- Success Screen -->

@@ -10,6 +10,146 @@ class PenguinLoginApp {
     this.userId = null;
     this.setupEventListeners();
     this.checkServerHealth();
+    this.detectOSAndShowPenguins();
+  }
+
+  /**
+   * Detect OS and show/hide penguins accordingly
+   */
+  detectOSAndShowPenguins() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    let detectedOS = 'Unknown OS';
+    let isOpenSource = false;
+
+    // Detect specific OS
+    if (userAgent.includes('ubuntu')) {
+      detectedOS = 'Ubuntu (Linux)';
+      isOpenSource = true;
+    } else if (userAgent.includes('debian')) {
+      detectedOS = 'Debian (Linux)';
+      isOpenSource = true;
+    } else if (userAgent.includes('fedora')) {
+      detectedOS = 'Fedora (Linux)';
+      isOpenSource = true;
+    } else if (userAgent.includes('arch')) {
+      detectedOS = 'Arch Linux';
+      isOpenSource = true;
+    } else if (userAgent.includes('manjaro')) {
+      detectedOS = 'Manjaro (Linux)';
+      isOpenSource = true;
+    } else if (userAgent.includes('opensuse')) {
+      detectedOS = 'openSUSE (Linux)';
+      isOpenSource = true;
+    } else if (userAgent.includes('mint')) {
+      detectedOS = 'Linux Mint';
+      isOpenSource = true;
+    } else if (userAgent.includes('centos')) {
+      detectedOS = 'CentOS (Linux)';
+      isOpenSource = true;
+    } else if (userAgent.includes('freebsd')) {
+      detectedOS = 'FreeBSD';
+      isOpenSource = true;
+    } else if (userAgent.includes('openbsd')) {
+      detectedOS = 'OpenBSD';
+      isOpenSource = true;
+    } else if (userAgent.includes('netbsd')) {
+      detectedOS = 'NetBSD';
+      isOpenSource = true;
+    } else if (userAgent.includes('linux')) {
+      detectedOS = 'Linux (Generic)';
+      isOpenSource = true;
+    } else if (userAgent.includes('win')) {
+      detectedOS = 'Windows';
+    } else if (userAgent.includes('mac')) {
+      detectedOS = 'macOS';
+    } else if (userAgent.includes('iphone') || userAgent.includes('ipad')) {
+      detectedOS = 'iOS';
+    } else if (userAgent.includes('android')) {
+      detectedOS = 'Android';
+    }
+
+    console.log(`🖥️ Detected OS: ${detectedOS}`);
+    console.log(`User Agent: ${navigator.userAgent}`);
+
+    const penguins = document.querySelectorAll('.pushy-penguin');
+    const notices = document.querySelector('.left-notices');
+    
+    if (isOpenSource) {
+      // Hide penguins and notices if using open source OS
+      penguins.forEach(penguin => {
+        penguin.style.display = 'none';
+      });
+      if (notices) {
+        notices.style.display = 'none';
+      }
+      console.log('✅ Open source OS detected! Penguins and notices hidden.');
+    } else {
+      // Show penguins and notices if using proprietary OS
+      penguins.forEach(penguin => {
+        penguin.style.display = 'flex';
+      });
+      if (notices) {
+        notices.style.display = 'flex';
+      }
+      this.initPushyPenguin();
+      console.log('⚠️ Proprietary OS detected! Penguins and notices activated to encourage open source.');
+    }
+  }
+
+  /**
+   * Initialize the pushy penguin mascots
+   */
+  initPushyPenguin() {
+    const penguin1Messages = [
+      'Use open source! 🐧',
+      'Free software rocks! 💪',
+      'Go FOSS! 🚀',
+      'Open source > Closed! 🔓',
+      'Share your code! 📤',
+      'Linux forever! 🐧'
+    ];
+
+    const penguin2Messages = [
+      'GPL is love 💕',
+      'No proprietary here! ✋',
+      'Community > Corporate 👥',
+      'Transparency wins! 👁️',
+      'Fork me on GitHub! 🍴',
+      'Code should be free! 🦅'
+    ];
+
+    const penguin3Messages = [
+      'Open = Better! ⭐',
+      'Contribute now! 🤝',
+      'Freedom in code! 🗽',
+      'FOSS forever! 🔥',
+      'Open minds, open code! 🧠',
+      'Embrace the penguin! 🐧'
+    ];
+
+    // Penguin 1
+    let index1 = 0;
+    const msg1El = document.getElementById('penguinMessage1');
+    setInterval(() => {
+      index1 = (index1 + 1) % penguin1Messages.length;
+      msg1El.textContent = penguin1Messages[index1];
+    }, 5000);
+
+    // Penguin 2
+    let index2 = 0;
+    const msg2El = document.getElementById('penguinMessage2');
+    setInterval(() => {
+      index2 = (index2 + 1) % penguin2Messages.length;
+      msg2El.textContent = penguin2Messages[index2];
+    }, 4500);
+
+    // Penguin 3
+    let index3 = 0;
+    const msg3El = document.getElementById('penguinMessage3');
+    setInterval(() => {
+      index3 = (index3 + 1) % penguin3Messages.length;
+      msg3El.textContent = penguin3Messages[index3];
+    }, 5500);
   }
 
   /**
@@ -67,7 +207,7 @@ class PenguinLoginApp {
   startRegister() {
     this.currentMode = 'register';
     this.clearLoginError();
-    this.startGame('🐧 Register - Create Your Walking Pattern');
+    this.startGame('🐧 Register');
   }
 
   /**
