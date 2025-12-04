@@ -1,0 +1,484 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary-color: #4f46e5;
+  --secondary-color: #06b6d4;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --warning-color: #f59e0b;
+  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border-radius: 12px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Screen Management */
+.screen {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.screen.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Login Screen */
+#loginScreen {
+  background: var(--bg-gradient);
+}
+
+.auth-form {
+  background: white;
+  padding: 2.5rem 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 380px;
+  animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-form h1 {
+  font-size: 2.8rem;
+  text-align: center;
+  margin-bottom: 0.3rem;
+  color: var(--text-primary);
+}
+
+.auth-form .subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: 1.8rem;
+  font-size: 0.9rem;
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.input-field::placeholder {
+  color: #d1d5db;
+}
+
+.btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+}
+
+.btn {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #4338ca;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: var(--text-primary);
+  border: 2px solid #e5e7eb;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+  border-color: var(--primary-color);
+}
+
+.form-divider {
+  text-align: center;
+  color: var(--text-secondary);
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+
+.error-message {
+  color: var(--error-color);
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  text-align: center;
+  min-height: 1.2rem;
+}
+
+.attempts-info {
+  color: var(--warning-color);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  text-align: center;
+  min-height: 1rem;
+}
+
+/* Game Screen */
+#gameScreen {
+  background: var(--bg-gradient);
+  flex-direction: column;
+  padding: 0;
+}
+
+.game-header {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+  gap: 1rem;
+}
+
+.btn-back {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: var(--transition);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+#gameTitle {
+  color: white;
+  font-size: 1.2rem;
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.sequence-display {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  max-width: 200px;
+  justify-content: flex-end;
+}
+
+.sequence-item {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: bold;
+  color: white;
+  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.sequence-item.a {
+  background: #10b981;
+}
+
+.sequence-item.b {
+  background: #ef4444;
+}
+
+.sequence-item.c {
+  background: #f59e0b;
+}
+
+.game-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding-top: 3.5rem;
+  padding-bottom: 4.5rem;
+}
+
+#gameCanvas {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--border-radius);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 95%;
+  max-height: 100%;
+  display: block;
+}
+
+.game-controls {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.game-controls .btn {
+  width: auto;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.95rem;
+}
+
+.game-message {
+  position: absolute;
+  bottom: 5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-size: 0.95rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.game-message.show {
+  opacity: 1;
+}
+
+/* Success Screen */
+#successScreen {
+  background: var(--bg-gradient);
+}
+
+.success-content {
+  background: white;
+  padding: 3rem 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 400px;
+  animation: slideUp 0.5s ease;
+}
+
+.success-animation {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.success-content h2 {
+  color: var(--success-color);
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.success-content p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* Error Screen */
+#errorScreen {
+  background: var(--bg-gradient);
+}
+
+.error-content {
+  background: white;
+  padding: 3rem 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 400px;
+  animation: slideUp 0.5s ease;
+}
+
+.error-animation {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+}
+
+.error-content h2 {
+  color: var(--error-color);
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.error-content p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .auth-form {
+    padding: 2rem 1.5rem;
+  }
+
+  .auth-form h1 {
+    font-size: 2rem;
+  }
+
+  #gameTitle {
+    font-size: 1.2rem;
+  }
+
+  .game-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .sequence-display {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    max-width: none;
+  }
+
+  #gameCanvas {
+    width: 100%;
+    height: auto;
+  }
+
+  .game-controls {
+    flex-direction: column;
+  }
+
+  .game-controls .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .auth-form {
+    padding: 1.5rem 1rem;
+  }
+
+  .auth-form h1 {
+    font-size: 1.75rem;
+  }
+
+  .success-content,
+  .error-content {
+    padding: 2rem 1rem;
+  }
+
+  .success-animation,
+  .error-animation {
+    font-size: 3rem;
+  }
+}

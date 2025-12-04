@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐧 Penguin Path Login</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+      <div class="auth-form">
+        <h1>🐧 Penguin Path</h1>
+        <p class="subtitle">Jump, dodge, or bump your way in</p>
+        
+        <div class="form-group">
+          <button id="loginBtn" class="btn btn-primary btn-large">
+            <span>🎮 Login</span>
+          </button>
+        </div>
+
+        <div class="form-divider">or</div>
+
+        <div class="form-group">
+          <button id="registerBtn" class="btn btn-secondary btn-large">
+            <span>✨ Create Account</span>
+          </button>
+        </div>
+
+        <div id="loginError" class="error-message"></div>
+        <div id="loginAttempts" class="attempts-info"></div>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+      <div class="game-header">
+        <button id="backBtn" class="btn-back">← Back</button>
+        <h2 id="gameTitle">🐧 Jump to Generate Password</h2>
+        <div id="sequenceDisplay" class="sequence-display"></div>
+      </div>
+
+      <div class="game-container">
+        <canvas id="gameCanvas" width="1000" height="600"></canvas>
+      </div>
+
+      <div class="game-controls">
+        <button id="clearBtn" class="btn btn-secondary">🔄 Clear Sequence</button>
+        <button id="submitBtn" class="btn btn-primary" disabled>
+          <span id="submitBtnText">Submit Sequence</span>
+        </button>
+      </div>
+
+      <div id="gameMessage" class="game-message"></div>
+    </div>
+
+    <!-- Success Screen -->
+    <div id="successScreen" class="screen">
+      <div class="success-content">
+        <div class="success-animation">🎉</div>
+        <h2 id="successTitle">Success!</h2>
+        <p id="successMessage"></p>
+        <button id="successBtn" class="btn btn-primary">Continue</button>
+      </div>
+    </div>
+
+    <!-- Error Screen -->
+    <div id="errorScreen" class="screen">
+      <div class="error-content">
+        <div class="error-animation">❌</div>
+        <h2>Oops!</h2>
+        <p id="errorMessage"></p>
+        <button id="errorRetryBtn" class="btn btn-primary">Try Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="penguin.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
