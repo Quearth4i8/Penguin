@@ -178,6 +178,7 @@ class PenguinLoginApp {
     // Login screen
     document.getElementById('loginBtn').addEventListener('click', () => this.startLogin());
     document.getElementById('registerBtn').addEventListener('click', () => this.startRegister());
+    document.getElementById('forgotBtn').addEventListener('click', () => this.startRecovery());
 
     // Game screen
     document.getElementById('backBtn').addEventListener('click', () => this.goBackToLogin());
@@ -189,6 +190,16 @@ class PenguinLoginApp {
 
     // Error screen
     document.getElementById('errorRetryBtn').addEventListener('click', () => this.goBackToLogin());
+
+    // Recovery screen
+    document.getElementById('recoveryBackBtn').addEventListener('click', () => this.goBackToLogin());
+    document.getElementById('recoverySubmitBtn').addEventListener('click', () => this.submitRecoveryAnswer());
+    document.getElementById('recoveryAnswerInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !document.getElementById('recoverySubmitBtn').disabled) {
+        this.submitRecoveryAnswer();
+      }
+    });
+
 
     // OS Toggle for testing
     const osToggle = document.getElementById('osToggle');
@@ -322,6 +333,10 @@ class PenguinLoginApp {
     try {
       if (this.currentMode === 'register') {
         await this.submitRegister(sequence);
+      } else if (this.currentMode === 'verifyRecoverySequence') {
+        await this.submitVerifiedSequence(sequence);
+      } else if (this.currentMode === 'reset') {
+        await this.submitResetSequence(sequence);
       } else {
         await this.submitLogin(sequence);
       }
@@ -439,6 +454,341 @@ class PenguinLoginApp {
   }
 
   /**
+   * Start recovery process - show questions first
+   */
+  async startRecovery() {
+    this.currentMode = 'recovery';
+    
+    // Initialize recovery state with dummy session for questions
+    this.recoveryState = {
+      sessionId: null,
+      questions: [],
+      currentQuestionIndex: 0,
+      correctAnswers: 0,
+      totalAttempts: 0,
+      resetToken: null,
+      stage: 'questions' // Track which stage we're in
+    };
+
+    // Get questions from backend
+    try {
+      // We need to get questions without verifying a sequence first
+      // Create a temporary session just to get questions
+      const response = await fetch('http://localhost:3000/get-recovery-questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get questions');
+      }
+
+      this.recoveryState.sessionId = data.sessionId;
+      this.recoveryState.questions = data.questions;
+
+      this.switchScreen('recoveryScreen');
+      this.initializeRecoveryChat();
+    } catch (error) {
+      this.showError('Recovery Failed', error.message);
+    }
+  }
+
+  /**
+   * Initialize recovery chat
+   */
+  initializeRecoveryChat() {
+    const chatContainer = document.getElementById('chatContainer');
+    chatContainer.innerHTML = '';
+
+    // Welcome message
+    this.addChatMessage('bot', '🐧 Welcome to Account Recovery! Answer 3 out of 5 questions correctly to reset your sequence. Let\'s begin!');
+
+    // Ask first question
+    setTimeout(() => this.askNextQuestion(), 800);
+  }
+
+  /**
+   * Ask next recovery question
+   */
+  askNextQuestion() {
+    const { questions, currentQuestionIndex } = this.recoveryState;
+
+    if (currentQuestionIndex >= questions.length) {
+      return;
+    }
+
+    const question = questions[currentQuestionIndex];
+    this.addChatMessage('bot', question.question);
+    this.displayQuestionOptions(question);
+  }
+
+  /**
+   * Display question options as buttons
+   */
+  displayQuestionOptions(question) {
+    const chatContainer = document.getElementById('chatContainer');
+    const optionsDiv = document.createElement('div');
+    optionsDiv.className = 'question-options';
+
+    question.options.forEach(option => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.textContent = option;
+      btn.addEventListener('click', () => this.selectAnswer(option, question.id));
+      optionsDiv.appendChild(btn);
+    });
+
+    chatContainer.appendChild(optionsDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    // Hide input area during question
+    document.getElementById('recoveryAnswerInput').style.display = 'none';
+    document.getElementById('recoverySubmitBtn').style.display = 'none';
+  }
+
+  /**
+   * Add message to chat
+   */
+  addChatMessage(sender, message, type = null) {
+    const chatContainer = document.getElementById('chatContainer');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${sender}`;
+
+    const bubble = document.createElement('div');
+    bubble.className = `message-bubble ${sender}`;
+    if (type) bubble.classList.add(type);
+    bubble.textContent = message;
+
+    messageDiv.appendChild(bubble);
+    chatContainer.appendChild(messageDiv);
+
+    // Auto-scroll to bottom
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  /**
+   * Select an answer from multiple choice options
+   */
+  async selectAnswer(answer, questionId) {
+    const { sessionId, questions, currentQuestionIndex } = this.recoveryState;
+    const question = questions[currentQuestionIndex];
+
+    // Add user message to chat
+    this.addChatMessage('user', answer);
+
+    // Remove option buttons
+    const optionsDiv = document.querySelector('.question-options');
+    if (optionsDiv) optionsDiv.remove();
+
+    try {
+      const response = await verifyRecoveryAnswer(sessionId, questionId, answer);
+
+      this.recoveryState.correctAnswers = response.correctAnswers;
+      this.recoveryState.totalAttempts = response.totalAttempts;
+
+      // Update progress
+      this.updateRecoveryProgress();
+
+      // Show result with funny message
+      const funnyMessages = {
+        correct: [
+          '🎉 Correct! You\'re a true penguin! 🐧',
+          '✅ Nailed it! You\'re on fire! 🔥',
+          '🌟 Brilliant! Keep it up!',
+          '💪 That\'s right! You\'re crushing it!',
+          '🚀 Correct! You\'re unstoppable!'
+        ],
+        incorrect: [
+          '❌ Oops! Not quite... Try again!',
+          '😅 Nope! Better luck next time!',
+          '🤔 That\'s not it... Keep trying!',
+          '🐧 Waddle back and try again!',
+          '❌ Not this time, penguin! 🐧'
+        ]
+      };
+
+      const messageList = response.isCorrect ? funnyMessages.correct : funnyMessages.incorrect;
+      const randomMessage = messageList[Math.floor(Math.random() * messageList.length)];
+
+      setTimeout(() => {
+        this.addChatMessage('bot', randomMessage, response.isCorrect ? 'success' : 'error');
+
+        // Check if recovery is complete
+        if (response.passed !== undefined) {
+          setTimeout(() => this.handleRecoveryComplete(response), 1000);
+        } else {
+          // Ask next question
+          this.recoveryState.currentQuestionIndex++;
+          const attemptsRemaining = response.attemptsRemaining;
+
+          if (attemptsRemaining > 0) {
+            setTimeout(() => {
+              this.addChatMessage('bot', `You still have ${attemptsRemaining} ${attemptsRemaining === 1 ? 'try' : 'tries'} left! 💪`);
+              setTimeout(() => this.askNextQuestion(), 600);
+            }, 800);
+          }
+        }
+      }, 600);
+    } catch (error) {
+      this.addChatMessage('bot', `Error: ${error.message}`, 'error');
+    }
+  }
+
+  /**
+   * Submit recovery answer (kept for backward compatibility)
+   */
+  async submitRecoveryAnswer() {
+    // This is now handled by selectAnswer through button clicks
+    // Keeping this method for event listener compatibility
+  }
+
+  /**
+   * Update recovery progress bar
+   */
+  updateRecoveryProgress() {
+    const { correctAnswers, totalAttempts } = this.recoveryState;
+    const progressFill = document.getElementById('progressFill');
+    const percentage = (correctAnswers / 3) * 100;
+    progressFill.style.width = Math.min(percentage, 100) + '%';
+
+    document.getElementById('correctCount').textContent = correctAnswers;
+    document.getElementById('attemptCount').textContent = totalAttempts;
+  }
+
+  /**
+   * Handle recovery completion
+   */
+  handleRecoveryComplete(response) {
+    const chatContainer = document.getElementById('chatContainer');
+
+    if (response.passed) {
+      this.addChatMessage('bot', '🎉 Congratulations! You\'ve proven yourself! Now enter your original sequence to verify your account.', 'success');
+
+      setTimeout(() => {
+        // Disable input and show sequence entry screen
+        document.getElementById('recoveryAnswerInput').disabled = true;
+        document.getElementById('recoverySubmitBtn').disabled = true;
+
+        setTimeout(() => {
+          this.startSequenceVerification();
+        }, 1500);
+      }, 1000);
+    } else {
+      this.addChatMessage('bot', '😞 You didn\'t pass this time. Please try again later.', 'error');
+      document.getElementById('recoveryAnswerInput').disabled = true;
+      document.getElementById('recoverySubmitBtn').disabled = true;
+
+      setTimeout(() => {
+        this.goBackToLogin();
+      }, 2000);
+    }
+  }
+
+  /**
+   * Start sequence verification after passing questions
+   */
+  startSequenceVerification() {
+    this.currentMode = 'verifyRecoverySequence';
+    this.switchScreen('gameScreen');
+    document.getElementById('gameTitle').textContent = '🐧 Enter Your Original Sequence';
+
+    // Initialize game if not already done
+    if (!this.game) {
+      this.game = new PenguinGame('gameCanvas');
+      this.game.onSequenceUpdated = (sequence) => this.updateSequenceDisplay(sequence);
+      this.game.start();
+    } else {
+      this.game.reset();
+    }
+
+    this.updateSequenceDisplay(this.game.sequence);
+    this.updateSubmitButton();
+  }
+
+  /**
+   * Submit verified sequence
+   */
+  async submitVerifiedSequence(sequence) {
+    try {
+      const response = await fetch('http://localhost:3000/start-recovery', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          sequence: sequence,
+          sessionId: this.recoveryState.sessionId 
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Sequence verification failed');
+      }
+
+      // Sequence verified, now show reset sequence screen
+      this.startResetSequence();
+    } catch (error) {
+      this.showError('Verification Failed', error.message);
+      this.game.gameActive = true;
+    }
+  }
+
+  /**
+   * Verify recovery answer and check if passed
+   */
+  async verifyRecoveryAnswerAndCheck(sessionId, questionId, answer) {
+    try {
+      const response = await verifyRecoveryAnswer(sessionId, questionId, answer);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Start reset sequence screen
+   */
+  startResetSequence() {
+    this.currentMode = 'reset';
+    this.switchScreen('gameScreen');
+    document.getElementById('gameTitle').textContent = '🐧 Create Your New Sequence';
+
+    // Initialize game if not already done
+    if (!this.game) {
+      this.game = new PenguinGame('gameCanvas');
+      this.game.onSequenceUpdated = (sequence) => this.updateSequenceDisplay(sequence);
+      this.game.start();
+    } else {
+      this.game.reset();
+    }
+
+    this.updateSequenceDisplay(this.game.sequence);
+    this.updateSubmitButton();
+  }
+
+  /**
+   * Submit reset sequence
+   */
+  async submitResetSequence(sequence) {
+    try {
+      const response = await resetSequence(this.recoveryState.resetToken, sequence);
+      this.showSuccess(
+        'Sequence Reset! 🎉',
+        'Your new sequence has been saved. You can now login with your new pattern!'
+      );
+    } catch (error) {
+      this.showError('Reset Failed', error.message);
+      this.game.gameActive = true;
+    }
+  }
+
+  /**
    * Go back to login screen
    */
   goBackToLogin() {
@@ -449,6 +799,7 @@ class PenguinLoginApp {
     this.clearLoginError();
     this.userId = null;
     this.currentMode = null;
+    this.recoveryState = null;
   }
 }
 

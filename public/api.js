@@ -75,3 +75,90 @@ async function checkHealth() {
     throw error;
   }
 }
+
+/**
+ * Start account recovery process
+ * @param {string} sequence - User's sequence
+ * @returns {Promise<Object>} Recovery session with questions and sessionId
+ */
+async function startRecovery(sequence) {
+  try {
+    const response = await fetch(`${API_BASE}/start-recovery`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ sequence })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Recovery start failed');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Recovery start error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Verify a security question answer
+ * @param {string} sessionId - Recovery session ID
+ * @param {number} questionId - Question ID
+ * @param {string} answer - User's answer
+ * @returns {Promise<Object>} Verification result
+ */
+async function verifyRecoveryAnswer(sessionId, questionId, answer) {
+  try {
+    const response = await fetch(`${API_BASE}/verify-recovery-answer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ sessionId, questionId, answer })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Verification failed');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Recovery verification error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Reset user's sequence after successful recovery
+ * @param {string} resetToken - Reset token from recovery
+ * @param {string} newSequence - New sequence
+ * @returns {Promise<Object>} Reset result
+ */
+async function resetSequence(resetToken, newSequence) {
+  try {
+    const response = await fetch(`${API_BASE}/reset-sequence`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ resetToken, newSequence })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Reset failed');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Reset sequence error:', error);
+    throw error;
+  }
+}
