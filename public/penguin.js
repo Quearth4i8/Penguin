@@ -17,6 +17,9 @@ class PenguinGame {
     this.minSequenceLength = 6;
     this.gameSpeed = 2.5;
 
+    // Detect OS for styling
+    this.isWindowsUser = this.detectOS();
+
     // Paths
     this.paths = [
       { x: this.width * 0.25, label: 'Left' },
@@ -81,6 +84,20 @@ class PenguinGame {
     this.canvas.height = window.innerHeight;
     this.width = this.canvas.width;
     this.height = this.canvas.height;
+  }
+
+  detectOS() {
+    // Check for manual OS override from toggle
+    const osToggle = document.getElementById('osToggle');
+    const toggleValue = osToggle ? osToggle.value : 'auto';
+    
+    if (toggleValue !== 'auto') {
+      return toggleValue === 'windows';
+    }
+    
+    // Auto-detect from user agent
+    const userAgent = navigator.userAgent.toLowerCase();
+    return userAgent.includes('win');
   }
 
   generateStars() {
@@ -480,19 +497,28 @@ class PenguinGame {
   drawBackground() {
     const ctx = this.ctx;
     
-    // Water background with wave effect
-    const grad = ctx.createLinearGradient(0,0,0,this.height);
-    grad.addColorStop(0,'#0369a1');
-    grad.addColorStop(0.5,'#0284c7');
-    grad.addColorStop(1,'#06b6d4');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0,0,this.width,this.height);
-    
-    // Add animated wave pattern
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-    for (let i = 0; i < this.height; i += 20) {
-      const waveOffset = Math.sin((i + this.animationFrame * 2) * 0.02) * 3;
-      ctx.fillRect(0, i + waveOffset, this.width, 10);
+    if (this.isWindowsUser) {
+      // Purple gradient like login screen for Windows users
+      const grad = ctx.createLinearGradient(0,0,0,this.height);
+      grad.addColorStop(0,'#667eea');
+      grad.addColorStop(1,'#764ba2');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,this.width,this.height);
+    } else {
+      // Water background with wave effect for other OS
+      const grad = ctx.createLinearGradient(0,0,0,this.height);
+      grad.addColorStop(0,'#0369a1');
+      grad.addColorStop(0.5,'#0284c7');
+      grad.addColorStop(1,'#06b6d4');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,this.width,this.height);
+      
+      // Add animated wave pattern
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+      for (let i = 0; i < this.height; i += 20) {
+        const waveOffset = Math.sin((i + this.animationFrame * 2) * 0.02) * 3;
+        ctx.fillRect(0, i + waveOffset, this.width, 10);
+      }
     }
   }
 
@@ -518,38 +544,56 @@ class PenguinGame {
       const left = path.x - this.pathWidth / 2;
       const right = path.x + this.pathWidth / 2;
       
-      // Draw ice path with gradient
-      const iceGrad = ctx.createLinearGradient(left, 0, right, 0);
-      iceGrad.addColorStop(0, 'rgba(200, 230, 255, 0.3)');
-      iceGrad.addColorStop(0.5, 'rgba(230, 250, 255, 0.6)');
-      iceGrad.addColorStop(1, 'rgba(200, 230, 255, 0.3)');
-      ctx.fillStyle = iceGrad;
-      ctx.fillRect(left, 0, this.pathWidth, this.height);
-      
-      // Add ice shine effect
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-      ctx.fillRect(left + 5, 0, 10, this.height);
-      
-      // Ice edge glow
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.lineWidth = 2;
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = 'rgba(100, 200, 255, 0.6)';
-      ctx.beginPath();
-      ctx.moveTo(left, 0);
-      ctx.lineTo(left, this.height);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(right, 0);
-      ctx.lineTo(right, this.height);
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-      
-      // Add subtle ice texture
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-      for (let i = 0; i < this.height; i += 15) {
-        const offset = Math.sin(i * 0.1 + this.animationFrame * 0.02) * 2;
-        ctx.fillRect(left + offset, i, 3, 8);
+      if (this.isWindowsUser) {
+        // Simple clean path for Windows users
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.fillRect(left, 0, this.pathWidth, this.height);
+        
+        // Simple border
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(left, 0);
+        ctx.lineTo(left, this.height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(right, 0);
+        ctx.lineTo(right, this.height);
+        ctx.stroke();
+      } else {
+        // Draw ice path with gradient for other OS
+        const iceGrad = ctx.createLinearGradient(left, 0, right, 0);
+        iceGrad.addColorStop(0, 'rgba(200, 230, 255, 0.3)');
+        iceGrad.addColorStop(0.5, 'rgba(230, 250, 255, 0.6)');
+        iceGrad.addColorStop(1, 'rgba(200, 230, 255, 0.3)');
+        ctx.fillStyle = iceGrad;
+        ctx.fillRect(left, 0, this.pathWidth, this.height);
+        
+        // Add ice shine effect
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fillRect(left + 5, 0, 10, this.height);
+        
+        // Ice edge glow
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = 'rgba(100, 200, 255, 0.6)';
+        ctx.beginPath();
+        ctx.moveTo(left, 0);
+        ctx.lineTo(left, this.height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(right, 0);
+        ctx.lineTo(right, this.height);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        // Add subtle ice texture
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        for (let i = 0; i < this.height; i += 15) {
+          const offset = Math.sin(i * 0.1 + this.animationFrame * 0.02) * 2;
+          ctx.fillRect(left + offset, i, 3, 8);
+        }
       }
     });
   }

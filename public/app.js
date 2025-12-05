@@ -193,7 +193,13 @@ class PenguinLoginApp {
     // OS Toggle for testing
     const osToggle = document.getElementById('osToggle');
     if (osToggle) {
-      osToggle.addEventListener('change', () => this.detectOSAndShowPenguins());
+      osToggle.addEventListener('change', () => {
+        this.detectOSAndShowPenguins();
+        // If game is running, update the OS detection in the game
+        if (this.game) {
+          this.game.isWindowsUser = this.game.detectOS();
+        }
+      });
     }
 
     // Allow Enter key on login screen
