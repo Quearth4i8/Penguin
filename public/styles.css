@@ -1201,6 +1201,20 @@ body {
   transform: translateY(0);
 }
 
+/* Media Download Buttons */
+.media-download-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.media-download-buttons .btn {
+  min-width: 150px;
+  white-space: nowrap;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .auth-form {
@@ -1237,6 +1251,14 @@ body {
   }
 
   .game-controls .btn {
+    width: 100%;
+  }
+
+  .media-download-buttons {
+    flex-direction: column;
+  }
+
+  .media-download-buttons .btn {
     width: 100%;
   }
 }

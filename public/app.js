@@ -8,6 +8,10 @@ class PenguinLoginApp {
     this.game = null;
     this.currentMode = null; // 'register' or 'login'
     this.userId = null;
+    this.mediaRecorder = null;
+    this.recordedChunks = [];
+    this.isRecording = false;
+    this.sequenceScreenshot = null;
     this.setupEventListeners();
     this.checkServerHealth();
     this.detectOSAndShowPenguins();
@@ -253,6 +257,134 @@ class PenguinLoginApp {
   }
 
   /**
+   * Start recording the game canvas
+   */
+  startRecording() {
+    const canvas = document.getElementById('gameCanvas');
+    
+    try {
+      const stream = canvas.captureStream(30); // 30 FPS
+      this.recordedChunks = [];
+      
+      this.mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9',
+        videoBitsPerSecond: 2500000
+      });
+      
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          this.recordedChunks.push(event.data);
+        }
+      };
+      
+      this.mediaRecorder.start();
+      this.isRecording = true;
+      console.log('🎥 Recording started');
+    } catch (error) {
+      console.error('Recording error:', error);
+      // Fallback for browsers that don't support vp9
+      try {
+        const stream = canvas.captureStream(30);
+        this.recordedChunks = [];
+        this.mediaRecorder = new MediaRecorder(stream);
+        
+        this.mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            this.recordedChunks.push(event.data);
+          }
+        };
+        
+        this.mediaRecorder.start();
+        this.isRecording = true;
+        console.log('🎥 Recording started (fallback codec)');
+      } catch (fallbackError) {
+        console.error('Recording not supported:', fallbackError);
+      }
+    }
+  }
+
+  /**
+   * Stop recording and return blob
+   */
+  stopRecording() {
+    return new Promise((resolve) => {
+      if (!this.mediaRecorder || !this.isRecording) {
+        resolve(null);
+        return;
+      }
+
+      this.mediaRecorder.onstop = () => {
+        const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
+        this.isRecording = false;
+        console.log('🎥 Recording stopped');
+        resolve(blob);
+      };
+
+      this.mediaRecorder.stop();
+    });
+  }
+
+  /**
+   * Capture screenshot of sequence display
+   */
+  captureSequenceScreenshot() {
+    const sequenceDisplay = document.getElementById('sequenceDisplay');
+    if (!sequenceDisplay) return null;
+
+    // Create a temporary canvas for the screenshot
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size
+    canvas.width = 400;
+    canvas.height = 100;
+    
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw border
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw title
+    ctx.fillStyle = '#333';
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText('Sequence Created:', 10, 25);
+    
+    // Draw sequence items
+    const items = this.game.sequence;
+    let xPos = 10;
+    const yPos = 50;
+    
+    items.forEach((item, index) => {
+      // Draw colored circle
+      const colors = {
+        'A': '#10b981',
+        'B': '#ef4444',
+        'C': '#f59e0b'
+      };
+      
+      ctx.fillStyle = colors[item] || '#ccc';
+      ctx.beginPath();
+      ctx.arc(xPos + 15, yPos, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Draw letter
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(item, xPos + 15, yPos);
+      
+      xPos += 35;
+    });
+    
+    return canvas.toDataURL('image/png');
+  }
+
+  /**
    * Start the game
    */
   startGame(title) {
@@ -271,6 +403,9 @@ class PenguinLoginApp {
 
     this.updateSequenceDisplay(this.game.sequence);
     this.updateSubmitButton();
+    
+    // Start recording when game starts
+    this.startRecording();
   }
 
   /**
@@ -352,6 +487,10 @@ class PenguinLoginApp {
    */
   async submitRegister(sequence) {
     try {
+      // Stop recording and capture screenshot
+      const videoBlob = await this.stopRecording();
+      const screenshotData = this.captureSequenceScreenshot();
+      
       // Generate a unique ID for this sequence
       const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
       const response = await registerUser(userId, sequence);
@@ -359,9 +498,14 @@ class PenguinLoginApp {
       // Store the userId so user can login with same sequence
       localStorage.setItem('penguinUserId', userId);
       
+      // Store recording and screenshot for download
+      this.recordingBlob = videoBlob;
+      this.screenshotData = screenshotData;
+      
       this.showSuccess(
         'Account Created! 🎉',
-        `Your sequence has been securely stored. You can now login with the same pattern!`
+        `Your sequence has been securely stored. You can now login with the same pattern!`,
+        { videoBlob, screenshotData }
       );
     } catch (error) {
       this.showError('Registration Failed', error.message);
@@ -397,10 +541,69 @@ class PenguinLoginApp {
   /**
    * Show success screen
    */
-  showSuccess(title, message) {
+  showSuccess(title, message, mediaFiles = null) {
     document.getElementById('successTitle').textContent = title;
     document.getElementById('successMessage').textContent = message;
+    
+    // Add download buttons if media files are provided
+    const successContent = document.querySelector('.success-content');
+    const existingButtons = successContent.querySelector('.media-download-buttons');
+    if (existingButtons) {
+      existingButtons.remove();
+    }
+    
+    if (mediaFiles && (mediaFiles.videoBlob || mediaFiles.screenshotData)) {
+      const buttonsContainer = document.createElement('div');
+      buttonsContainer.className = 'media-download-buttons';
+      buttonsContainer.style.cssText = 'display: flex; gap: 10px; justify-content: center; margin: 20px 0;';
+      
+      if (mediaFiles.screenshotData) {
+        const screenshotBtn = document.createElement('button');
+        screenshotBtn.className = 'btn btn-secondary';
+        screenshotBtn.textContent = '📸 Download Screenshot';
+        screenshotBtn.onclick = () => this.downloadScreenshot(mediaFiles.screenshotData);
+        buttonsContainer.appendChild(screenshotBtn);
+      }
+      
+      if (mediaFiles.videoBlob) {
+        const videoBtn = document.createElement('button');
+        videoBtn.className = 'btn btn-secondary';
+        videoBtn.textContent = '🎥 Download Video';
+        videoBtn.onclick = () => this.downloadVideo(mediaFiles.videoBlob);
+        buttonsContainer.appendChild(videoBtn);
+      }
+      
+      const successBtn = document.getElementById('successBtn');
+      successBtn.parentNode.insertBefore(buttonsContainer, successBtn);
+    }
+    
     this.switchScreen('successScreen');
+  }
+
+  /**
+   * Download screenshot
+   */
+  downloadScreenshot(screenshotData) {
+    const link = document.createElement('a');
+    link.href = screenshotData;
+    link.download = `penguin-sequence-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  /**
+   * Download video
+   */
+  downloadVideo(videoBlob) {
+    const url = URL.createObjectURL(videoBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `penguin-gameplay-${Date.now()}.webm`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   /**
