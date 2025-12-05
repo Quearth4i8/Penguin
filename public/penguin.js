@@ -427,6 +427,10 @@ class PenguinGame {
     this.onSequenceUpdated?.(this.sequence);
   }
 
+  reset() {
+    this.clearSequence();
+  }
+
   stop() {
     this.gameActive = false;
   }
