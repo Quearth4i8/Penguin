@@ -17,55 +17,74 @@ class PenguinLoginApp {
    * Detect OS and show/hide penguins accordingly
    */
   detectOSAndShowPenguins() {
+    // Check for manual OS override from toggle
+    const osToggle = document.getElementById('osToggle');
+    const toggleValue = osToggle ? osToggle.value : 'auto';
+    
     const userAgent = navigator.userAgent.toLowerCase();
     let detectedOS = 'Unknown OS';
     let isOpenSource = false;
 
-    // Detect specific OS
-    if (userAgent.includes('ubuntu')) {
-      detectedOS = 'Ubuntu (Linux)';
-      isOpenSource = true;
-    } else if (userAgent.includes('debian')) {
-      detectedOS = 'Debian (Linux)';
-      isOpenSource = true;
-    } else if (userAgent.includes('fedora')) {
-      detectedOS = 'Fedora (Linux)';
-      isOpenSource = true;
-    } else if (userAgent.includes('arch')) {
-      detectedOS = 'Arch Linux';
-      isOpenSource = true;
-    } else if (userAgent.includes('manjaro')) {
-      detectedOS = 'Manjaro (Linux)';
-      isOpenSource = true;
-    } else if (userAgent.includes('opensuse')) {
-      detectedOS = 'openSUSE (Linux)';
-      isOpenSource = true;
-    } else if (userAgent.includes('mint')) {
-      detectedOS = 'Linux Mint';
-      isOpenSource = true;
-    } else if (userAgent.includes('centos')) {
-      detectedOS = 'CentOS (Linux)';
-      isOpenSource = true;
-    } else if (userAgent.includes('freebsd')) {
-      detectedOS = 'FreeBSD';
-      isOpenSource = true;
-    } else if (userAgent.includes('openbsd')) {
-      detectedOS = 'OpenBSD';
-      isOpenSource = true;
-    } else if (userAgent.includes('netbsd')) {
-      detectedOS = 'NetBSD';
-      isOpenSource = true;
-    } else if (userAgent.includes('linux')) {
-      detectedOS = 'Linux (Generic)';
-      isOpenSource = true;
-    } else if (userAgent.includes('win')) {
-      detectedOS = 'Windows';
-    } else if (userAgent.includes('mac')) {
-      detectedOS = 'macOS';
-    } else if (userAgent.includes('iphone') || userAgent.includes('ipad')) {
-      detectedOS = 'iOS';
-    } else if (userAgent.includes('android')) {
-      detectedOS = 'Android';
+    // If toggle is set to a specific OS, use that instead of auto-detect
+    if (toggleValue !== 'auto') {
+      if (toggleValue === 'linux') {
+        detectedOS = 'Linux (Test Mode)';
+        isOpenSource = true;
+      } else if (toggleValue === 'windows') {
+        detectedOS = 'Windows (Test Mode)';
+        isOpenSource = false;
+      } else if (toggleValue === 'macos') {
+        detectedOS = 'macOS (Test Mode)';
+        isOpenSource = false;
+      }
+    } else {
+      // Auto-detect from user agent
+      // Detect specific OS
+      if (userAgent.includes('ubuntu')) {
+        detectedOS = 'Ubuntu (Linux)';
+        isOpenSource = true;
+      } else if (userAgent.includes('debian')) {
+        detectedOS = 'Debian (Linux)';
+        isOpenSource = true;
+      } else if (userAgent.includes('fedora')) {
+        detectedOS = 'Fedora (Linux)';
+        isOpenSource = true;
+      } else if (userAgent.includes('arch')) {
+        detectedOS = 'Arch Linux';
+        isOpenSource = true;
+      } else if (userAgent.includes('manjaro')) {
+        detectedOS = 'Manjaro (Linux)';
+        isOpenSource = true;
+      } else if (userAgent.includes('opensuse')) {
+        detectedOS = 'openSUSE (Linux)';
+        isOpenSource = true;
+      } else if (userAgent.includes('mint')) {
+        detectedOS = 'Linux Mint';
+        isOpenSource = true;
+      } else if (userAgent.includes('centos')) {
+        detectedOS = 'CentOS (Linux)';
+        isOpenSource = true;
+      } else if (userAgent.includes('freebsd')) {
+        detectedOS = 'FreeBSD';
+        isOpenSource = true;
+      } else if (userAgent.includes('openbsd')) {
+        detectedOS = 'OpenBSD';
+        isOpenSource = true;
+      } else if (userAgent.includes('netbsd')) {
+        detectedOS = 'NetBSD';
+        isOpenSource = true;
+      } else if (userAgent.includes('linux')) {
+        detectedOS = 'Linux (Generic)';
+        isOpenSource = true;
+      } else if (userAgent.includes('win')) {
+        detectedOS = 'Windows';
+      } else if (userAgent.includes('mac')) {
+        detectedOS = 'macOS';
+      } else if (userAgent.includes('iphone') || userAgent.includes('ipad')) {
+        detectedOS = 'iOS';
+      } else if (userAgent.includes('android')) {
+        detectedOS = 'Android';
+      }
     }
 
     console.log(`🖥️ Detected OS: ${detectedOS}`);
@@ -170,6 +189,12 @@ class PenguinLoginApp {
 
     // Error screen
     document.getElementById('errorRetryBtn').addEventListener('click', () => this.goBackToLogin());
+
+    // OS Toggle for testing
+    const osToggle = document.getElementById('osToggle');
+    if (osToggle) {
+      osToggle.addEventListener('change', () => this.detectOSAndShowPenguins());
+    }
 
     // Allow Enter key on login screen
     document.addEventListener('keydown', (e) => {

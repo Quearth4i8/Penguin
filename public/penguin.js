@@ -23,7 +23,7 @@ class PenguinGame {
       { x: this.width * 0.5, label: 'Center' },
       { x: this.width * 0.75, label: 'Right' }
     ];
-    this.pathWidth = 60;
+    this.pathWidth = 120;
 
     // Penguin state
     this.penguin = {
@@ -432,12 +432,32 @@ class PenguinGame {
       this.penguin.rotation *= 0.85; // dampen rotation when not moving
     }
 
-    // Gentle scale animation
-    this.penguin.scale = 1 + Math.sin(this.animationFrame * 0.05) * 0.05;
-    
-    // Add slight horizontal squish when moving
-    if (this.penguin.isMoving) {
-      this.penguin.scale = 1 + Math.sin(this.animationFrame * 0.2) * 0.08;
+    // Jump squash and stretch animation - only at takeoff and landing
+    if (this.penguin.isJumping) {
+      // Only squash/stretch at the very start and end of jump
+      const jumpProgress = Math.abs(this.penguin.velocityY) / this.penguin.jumpPower;
+      
+      // Squash at takeoff (velocityY just became negative)
+      if (this.penguin.velocityY < -this.penguin.jumpPower * 0.8) {
+        // Compress at takeoff
+        this.penguin.scale = 0.85;
+      } 
+      // Stretch in mid-air
+      else if (jumpProgress < 0.5) {
+        // Expand in mid-air
+        this.penguin.scale = 1.15;
+      } else {
+        // Return to normal as falling
+        this.penguin.scale = 1;
+      }
+    } else {
+      // Gentle scale animation when not jumping
+      this.penguin.scale = 1 + Math.sin(this.animationFrame * 0.05) * 0.05;
+      
+      // Add slight horizontal squish when moving
+      if (this.penguin.isMoving) {
+        this.penguin.scale = 1 + Math.sin(this.animationFrame * 0.2) * 0.08;
+      }
     }
   }
 
@@ -460,12 +480,20 @@ class PenguinGame {
   drawBackground() {
     const ctx = this.ctx;
     
-    // Simple gradient background
+    // Water background with wave effect
     const grad = ctx.createLinearGradient(0,0,0,this.height);
-    grad.addColorStop(0,'#4f46e5');
-    grad.addColorStop(1,'#7c3aed');
+    grad.addColorStop(0,'#0369a1');
+    grad.addColorStop(0.5,'#0284c7');
+    grad.addColorStop(1,'#06b6d4');
     ctx.fillStyle = grad;
     ctx.fillRect(0,0,this.width,this.height);
+    
+    // Add animated wave pattern
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    for (let i = 0; i < this.height; i += 20) {
+      const waveOffset = Math.sin((i + this.animationFrame * 2) * 0.02) * 3;
+      ctx.fillRect(0, i + waveOffset, this.width, 10);
+    }
   }
 
   drawStars() {
@@ -486,20 +514,43 @@ class PenguinGame {
 
   drawPaths() {
     const ctx = this.ctx;
-    this.paths.forEach((path,index)=>{
-      const left = path.x - this.pathWidth/2;
-      const right = path.x + this.pathWidth/2;
+    this.paths.forEach((path, index) => {
+      const left = path.x - this.pathWidth / 2;
+      const right = path.x + this.pathWidth / 2;
       
-      // Glowing path lines
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.lineWidth = 4;
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
-      ctx.setLineDash([10, 5]);
-      ctx.beginPath(); ctx.moveTo(left,0); ctx.lineTo(left,this.height); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(right,0); ctx.lineTo(right,this.height); ctx.stroke();
-      ctx.setLineDash([]);
+      // Draw ice path with gradient
+      const iceGrad = ctx.createLinearGradient(left, 0, right, 0);
+      iceGrad.addColorStop(0, 'rgba(200, 230, 255, 0.3)');
+      iceGrad.addColorStop(0.5, 'rgba(230, 250, 255, 0.6)');
+      iceGrad.addColorStop(1, 'rgba(200, 230, 255, 0.3)');
+      ctx.fillStyle = iceGrad;
+      ctx.fillRect(left, 0, this.pathWidth, this.height);
+      
+      // Add ice shine effect
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.fillRect(left + 5, 0, 10, this.height);
+      
+      // Ice edge glow
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = 'rgba(100, 200, 255, 0.6)';
+      ctx.beginPath();
+      ctx.moveTo(left, 0);
+      ctx.lineTo(left, this.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(right, 0);
+      ctx.lineTo(right, this.height);
+      ctx.stroke();
       ctx.shadowBlur = 0;
+      
+      // Add subtle ice texture
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+      for (let i = 0; i < this.height; i += 15) {
+        const offset = Math.sin(i * 0.1 + this.animationFrame * 0.02) * 2;
+        ctx.fillRect(left + offset, i, 3, 8);
+      }
     });
   }
 
@@ -537,6 +588,7 @@ class PenguinGame {
 
     ctx.save();
     ctx.translate(p.x, y);
+    ctx.scale(p.scale, p.scale);
     
     // Use penguin.png if loaded, otherwise fallback to drawn penguin
     if (this.penguinImage.complete && this.penguinImage.naturalWidth > 0) {
